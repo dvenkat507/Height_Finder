@@ -33,25 +33,34 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.text.DecimalFormat;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener {
-
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener
+{
     private static final String TAG ="MainActivity";
+    private Button positon_marker,clear_marker;
+
+    protected LocationManager locationManager;
 
     private GoogleMap mMap;
-    protected LocationManager locationManager;
-    public static int marker_value = 0;
-    public static Marker marker1,marker2;
-    private static  double distance = 0.0, bearing = 0.0;
-    private static  boolean ready = false;
-    private Button positon_marker,clear_marker;
+    private static int marker_value = 0;
+    private static Marker marker1,marker2;
+    private static boolean ready = false;
     private Polyline pline;
-    public static final double Raidus = 6372.8;
+
+    private static final double Raidus = 6372.8;
+    private double minViewAngle = 0.0f;
+    private double distance = 0.0f, bearing = 0.0f;
+
     private static DecimalFormat df2 = new DecimalFormat("#.##");
-    private int[] mPrns = null, pPrns = null;
-    private float[] mSnrCn0s = null;
+
+    private boolean first_readings = true;
+    private Integer[] mPrns = null, pPrns = null;
     private float[] mElevs = null, pElevs = null;
     private float[] mAzims = null, pAzims = null;
+    private float[] mSnrCn0s = null;
     private int[] mConstellationType = null;
     private boolean[] mHasEphemeris = null;
     private boolean[] mHasAlmanac = null;
@@ -59,7 +68,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private int mSvCount = 0;
     private float mSnrCn0UsedAvg = 0.0f;
     private float mSnrCn0InViewAvg = 0.0f;
-    private double minViewAngle = 0.0f;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -354,17 +363,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     {
         if(ready)
         {
-            if (mPrns == null)
+            if (mPrns == null && pPrns == null)
             {
                 final int MAX_LENGTH = 255;
-                mPrns = new int[MAX_LENGTH];
-                mSnrCn0s = new float[MAX_LENGTH];
+                mPrns = new Integer[MAX_LENGTH];
+                pPrns = new Integer[MAX_LENGTH];
+                //mSnrCn0s = new float[MAX_LENGTH];
+                mElevs = new float[MAX_LENGTH];
                 mElevs = new float[MAX_LENGTH];
                 mAzims = new float[MAX_LENGTH];
-                mConstellationType = new int[MAX_LENGTH];
-                mHasEphemeris = new boolean[MAX_LENGTH];
-                mHasAlmanac = new boolean[MAX_LENGTH];
-                mUsedInFix = new boolean[MAX_LENGTH];
+                mAzims = new float[MAX_LENGTH];
+                //mConstellationType = new int[MAX_LENGTH];
+                //mHasEphemeris = new boolean[MAX_LENGTH];
+                //mHasAlmanac = new boolean[MAX_LENGTH];
+                //mUsedInFix = new boolean[MAX_LENGTH];
             }
 
             int length = status.getSatelliteCount();
@@ -377,17 +389,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mSnrCn0UsedAvg = 0.0f;
             while (mSvCount < length)
             {
-                if ((status.getAzimuthDegrees(mSvCount) >= (bearing - minViewAngle)) && (status.getAzimuthDegrees(mSvCount) <= (bearing + minViewAngle))) {
-                    mSnrCn0s[mSvCount] = status.getCn0DbHz(mSvCount);  // Store C/N0 values (see #65)
+                if ((status.getAzimuthDegrees(mSvCount) >= (bearing - minViewAngle)) && (status.getAzimuthDegrees(mSvCount) <= (bearing + minViewAngle)))
+                {
+                    //mSnrCn0s[mSvCount] = status.getCn0DbHz(mSvCount);  // Store C/N0 values (see #65)
                     mElevs[mSvCount] = status.getElevationDegrees(mSvCount);
                     mAzims[mSvCount] = status.getAzimuthDegrees(mSvCount);
                     mPrns[mSvCount] = status.getSvid(mSvCount);
-                    mConstellationType[mSvCount] = status.getConstellationType(mSvCount);
-                    mHasEphemeris[mSvCount] = status.hasEphemerisData(mSvCount);
-                    mHasAlmanac[mSvCount] = status.hasAlmanacData(mSvCount);
-                    mUsedInFix[mSvCount] = status.usedInFix(mSvCount);
+                    if(first_readings == true)
+                    {
+                        pPrns[mSvCount] = mPrns[mSvCount];
+                        pElevs[mSvCount] = mElevs[mSvCount];
+                        pAzims[mSvCount] = mAzims[mSvCount];
+                    }
+                    //mConstellationType[mSvCount] = status.getConstellationType(mSvCount);
+                    //mHasEphemeris[mSvCount] = status.hasEphemerisData(mSvCount);
+                    //mHasAlmanac[mSvCount] = status.hasAlmanacData(mSvCount);
+                    //mUsedInFix[mSvCount] = status.usedInFix(mSvCount);
                     // If satellite is in view, add signal to calculate avg
-                    if (status.getCn0DbHz(mSvCount) != 0.0f) {
+                    if (status.getCn0DbHz(mSvCount) != 0.0f)
+                    {
                         svInViewCount++;
                         cn0InViewSum = cn0InViewSum + status.getCn0DbHz(mSvCount);
                     }
@@ -401,10 +421,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
             ParseSatelliteData();
 
-            if (svInViewCount > 0) {
+            if (svInViewCount > 0)
+            {
                 mSnrCn0InViewAvg = cn0InViewSum / svInViewCount;
             }
-            if (svUsedCount > 0) {
+            if (svUsedCount > 0)
+            {
                 mSnrCn0UsedAvg = cn0UsedSum / svUsedCount;
             }
         }
@@ -415,11 +437,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     {
         Log.d(TAG, "ParseSatelliteData: Start");
         int lenght = mAzims.length;
-        for(int i = 0; i < lenght; i++)
+        if(!first_readings)
         {
-            if (mPrns[i] != 0) {
-                Log.d(TAG, "ParseSatelliteData: " + mAzims[i] + " " + mPrns[i] + " " + mElevs[i]);
-            }
+            int len;
+            if(mAzims.length >= pAzims.length)
+                len = mAzims.length;
+            else
+                len = pAzims.length;
+            Integer[] interscetion = new Integer[len];
+            interscetion = Intersection();
         }
+        else
+        {
+            first_readings = false;
+        }
+    }
+
+    private Integer[] Intersection()
+    {
+        Set<Integer> s1 = new HashSet<Integer>(Arrays.asList(mPrns));
+        Set<Integer> s2 = new HashSet<Integer>(Arrays.asList(pPrns));
+        s1.retainAll(s2);
+
+        Integer[] result = s1.toArray(new Integer[s1.size()]);
+        return result;
     }
 }
