@@ -3,9 +3,10 @@ package com.example.height_finder;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.widget.CompoundButton;
 import android.widget.Switch;
@@ -17,7 +18,7 @@ public class MainActivity extends AppCompatActivity implements CompoundButton.On
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        if (ContextCompat.checkSelfPermission(this.getApplicationContext(), "android.permission.ACCESS_COARSE_LOCATION") == 0 && ContextCompat.checkSelfPermission(this.getApplicationContext(), "android.permission.ACCESS_FINE_LOCATION") == 0)
+        if (ActivityCompat.checkSelfPermission(this.getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == 0 && ActivityCompat.checkSelfPermission(this.getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == 0)
         {
             //If Permission granted going to the Features Activity.
             Intent I = new Intent(getApplicationContext(),FeaturesActivity.class);
@@ -35,7 +36,7 @@ public class MainActivity extends AppCompatActivity implements CompoundButton.On
     {
         if(b)
         {
-            ActivityCompat.requestPermissions(this, new String[]{"android.permission.ACCESS_COARSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"}, 123);
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, 123);
         }
     }
 
@@ -44,7 +45,7 @@ public class MainActivity extends AppCompatActivity implements CompoundButton.On
     {
         if (requestCode == 123)
         {
-            if (grantResults.length > 0 && grantResults[0] == 0 && grantResults[1] == 0)
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED)
             {
                 Intent I = new Intent(getApplicationContext(),FeaturesActivity.class);
                 startActivity(I);
@@ -52,7 +53,7 @@ public class MainActivity extends AppCompatActivity implements CompoundButton.On
             else
             {
                 Permission.setChecked(false);
-                Toast.makeText(this, "Need Location permissions", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Need Location Permissions", Toast.LENGTH_SHORT).show();
             }
         }
     }
