@@ -37,8 +37,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener
-{
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener, View.OnClickListener {
     private static final String TAG ="MainActivity";
     private Button positon_marker,clear_marker;
 
@@ -82,48 +81,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         positon_marker = (Button)findViewById(R.id.btn_position_marker);
-        positon_marker.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                LatLng currentlocation = getLocation();
-                if (currentlocation != null) {
-                    if (marker_value == 0) {
-                        Log.d(TAG, "run: " + currentlocation.latitude + " " + currentlocation.longitude);
-                        BitmapDrawable bitmapdraw = (BitmapDrawable) getResources().getDrawable(R.drawable.marker1);
-                        Bitmap b = bitmapdraw.getBitmap();
-                        marker1 = mMap.addMarker(new MarkerOptions().position(currentlocation).title("Marker in Current location").icon(BitmapDescriptorFactory.fromBitmap(b)));
-                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentlocation, 16.0f));
-                        Resources res = getResources();
-                        positon_marker.setCompoundDrawablesWithIntrinsicBounds(ResourcesCompat.getDrawable(res, R.drawable.marker2_xml, null), null, null, null);
-                        marker_value++;
-                        ready = false;
-                    } else if (marker_value == 1) {
-                        //LatLng pos = new LatLng(13.0723449, 77.5758208);
-                        BitmapDrawable bitmapdraw = (BitmapDrawable) getResources().getDrawable(R.drawable.marker2);
-                        Bitmap b = bitmapdraw.getBitmap();
-                        marker2 = mMap.addMarker(new MarkerOptions().position(currentlocation).title("Marker in Current location").icon(BitmapDescriptorFactory.fromBitmap(b)));
-                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentlocation, 16.0f));
-                        pline = mMap.addPolyline(new PolylineOptions()
-                                .add(marker1.getPosition())
-                                .add(marker2.getPosition()));
-                        distance = findDistance(marker1, marker2);
-                        bearing = findbearing(marker2, marker1);
-                        Resources res = getResources();
-                        positon_marker.setCompoundDrawablesWithIntrinsicBounds(ResourcesCompat.getDrawable(res, R.drawable.cancelmarkerxml, null), null, null, null);
-                        positon_marker.setEnabled(false);
-                        marker_value++;
-                        if(distance <= 25) {
-                            minViewAngle = Math.toDegrees(Math.atan(7.5 / distance));
-                            ready = true;
-                        }
-                        else
-                        {
-                            Toast.makeText(getApplicationContext(), "Your are to far from building come close", Toast.LENGTH_LONG ).show();
-                        }
-                    }
-                }
-            }
-        });
+        positon_marker.setOnClickListener(this);
         clear_marker = (Button)findViewById(R.id.btn_clear_marker);
         clear_marker.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -461,5 +419,49 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         Integer[] result = s1.toArray(new Integer[s1.size()]);
         return result;
+    }
+
+    @Override
+    public void onClick(View view) {
+        try{
+        LatLng currentlocation = getLocation();
+        if (currentlocation != null) {
+            if (marker_value == 0) {
+                Log.d(TAG, "run: " + currentlocation.latitude + " " + currentlocation.longitude);
+                BitmapDrawable bitmapdraw = (BitmapDrawable) getResources().getDrawable(R.drawable.marker1);
+                Bitmap b = bitmapdraw.getBitmap();
+                marker1 = mMap.addMarker(new MarkerOptions().position(currentlocation).title("Marker in Current location").icon(BitmapDescriptorFactory.fromBitmap(b)));
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentlocation, 16.0f));
+                Resources res = getResources();
+                positon_marker.setCompoundDrawablesWithIntrinsicBounds(ResourcesCompat.getDrawable(res, R.drawable.marker2_xml, null), null, null, null);
+                marker_value++;
+                ready = false;
+            } else if (marker_value == 1) {
+                //LatLng pos = new LatLng(13.0723449, 77.5758208);
+                BitmapDrawable bitmapdraw = (BitmapDrawable) getResources().getDrawable(R.drawable.marker2);
+                Bitmap b = bitmapdraw.getBitmap();
+                marker2 = mMap.addMarker(new MarkerOptions().position(currentlocation).title("Marker in Current location").icon(BitmapDescriptorFactory.fromBitmap(b)));
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentlocation, 16.0f));
+                pline = mMap.addPolyline(new PolylineOptions()
+                        .add(marker1.getPosition())
+                        .add(marker2.getPosition()));
+                distance = findDistance(marker1, marker2);
+                bearing = findbearing(marker2, marker1);
+                Resources res = getResources();
+                positon_marker.setCompoundDrawablesWithIntrinsicBounds(ResourcesCompat.getDrawable(res, R.drawable.cancelmarkerxml, null), null, null, null);
+                positon_marker.setEnabled(false);
+                marker_value++;
+                if ((distance <= 25) && (distance > 0)) {
+                    minViewAngle = Math.toDegrees(Math.atan(7.5 / distance));
+                    ready = true;
+                } else {
+                    Toast.makeText(getApplicationContext(), "Your are to far from building come close", Toast.LENGTH_LONG).show();
+                }
+            }
+        }
+    }catch(Exception e){
+            Toast.makeText(this, ""+e, Toast.LENGTH_SHORT).show();
+            Log.d("MapsActivity", ""+e);
+        }
     }
 }

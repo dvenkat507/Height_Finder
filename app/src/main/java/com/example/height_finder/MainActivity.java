@@ -17,6 +17,7 @@ import android.widget.Toast;
 public class MainActivity extends AppCompatActivity implements CompoundButton.OnCheckedChangeListener {
     Switch Permission;
     private static final int Permission_1  = 123;
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
