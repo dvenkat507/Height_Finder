@@ -8,14 +8,15 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.Toast;
 
-// this entire project wwas done by Kiran alone not venkat nooooooooooooooo
 
 public class MainActivity extends AppCompatActivity implements CompoundButton.OnCheckedChangeListener {
     Switch Permission;
+    private static final int Permission_1  = 123;
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -38,23 +39,24 @@ public class MainActivity extends AppCompatActivity implements CompoundButton.On
     {
         if(b)
         {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, 123);
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, Permission_1);
         }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
     {
-        if (requestCode == 123)
+        Log.d("Permission result set", String.valueOf(grantResults[0]) + String.valueOf(grantResults[1]) );
+        if (requestCode == Permission_1)
         {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED)
+            if (grantResults.length>0 && grantResults[0] == PackageManager.PERMISSION_GRANTED  && grantResults[1] == PackageManager.PERMISSION_GRANTED)
             {
-                Intent I = new Intent(getApplicationContext(),FeaturesActivity.class);
+                Intent I = new Intent(this, FeaturesActivity.class);
                 startActivity(I);
             }
             else
             {
-                Permission.setChecked(false);
+                //Permission.setChecked(false);
                 Toast.makeText(this, "Need Location Permissions", Toast.LENGTH_SHORT).show();
             }
         }
