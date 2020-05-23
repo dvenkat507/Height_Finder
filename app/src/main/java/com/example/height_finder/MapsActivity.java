@@ -401,10 +401,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
             ParseSatelliteData();
 
-            if (svInViewCount > 0) {
+            if (svInViewCount > 0)
+            {
                 mSnrCn0InViewAvg = cn0InViewSum / svInViewCount;
             }
-            if (svUsedCount > 0) {
+            if (svUsedCount > 0)
+            {
                 mSnrCn0UsedAvg = cn0UsedSum / svUsedCount;
             }
         }
@@ -417,8 +419,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         int lenght = mAzims.length;
         for(int i = 0; i < lenght; i++)
         {
-            if (mPrns[i] != 0) {
+            if (mPrns[i] != 0)
+            {
                 Log.d(TAG, "ParseSatelliteData: " + mAzims[i] + " " + mPrns[i] + " " + mElevs[i]);
+
             }
         }
     }
