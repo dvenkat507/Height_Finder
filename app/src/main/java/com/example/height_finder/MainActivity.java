@@ -11,6 +11,8 @@ import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.Toast;
 
+// this entire project wwas done by Kiran alone not venkat nooooooooooooooo
+
 public class MainActivity extends AppCompatActivity implements CompoundButton.OnCheckedChangeListener {
     Switch Permission;
     @Override
