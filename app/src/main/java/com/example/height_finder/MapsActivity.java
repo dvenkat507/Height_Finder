@@ -109,10 +109,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
                 else if (marker_value == 1)
                 {
-                    //LatLng pos = new LatLng(13.0723449, 77.5758208);
+                    LatLng pos = new LatLng(13.0723449, 77.5758208);
                     BitmapDrawable bitmapdraw = (BitmapDrawable) getResources().getDrawable(R.drawable.marker2);
                     Bitmap b = bitmapdraw.getBitmap();
-                    marker2 = mMap.addMarker(new MarkerOptions().position(currentlocation).title("Marker in Current location").icon(BitmapDescriptorFactory.fromBitmap(b)));
+                    marker2 = mMap.addMarker(new MarkerOptions().position(pos).title("Marker in Current location").icon(BitmapDescriptorFactory.fromBitmap(b)));
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentlocation, 16.0f));
                     pline = mMap.addPolyline(new PolylineOptions()
                             .add(marker1.getPosition())
@@ -123,7 +123,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     positon_marker.setCompoundDrawablesWithIntrinsicBounds(ResourcesCompat.getDrawable(res, R.drawable.cancelmarkerxml, null), null, null, null);
                     positon_marker.setEnabled(false);
                     marker_value++;
-                    if((distance <= 25) && (distance > 0))
+                    if((distance <= 15) && (distance > 0))
                     {
                         minViewAngle = Math.toDegrees(Math.atan(7.5 / distance));
                         ready = true;
@@ -476,6 +476,4 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Integer[] result = s1.toArray(new Integer[s1.size()]);
         return result;
     }
-
-
 }
