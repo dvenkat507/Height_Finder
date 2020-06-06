@@ -36,6 +36,43 @@ import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.ArrayList;
+
+class SatParams
+{
+    private Integer Prns;
+    private float Elevation;
+    private float Azimuth;
+    private float SNRatio;
+
+    public SatParams(Integer Prns, float Elevation, float Azimuth, float SNRatio)
+    {
+        this.Prns = Prns;
+        this.Elevation = Elevation;
+        this.Azimuth = Azimuth;
+        this.SNRatio = SNRatio;
+    }
+
+    public Integer getPrns()
+    {
+        return this.Prns;
+    }
+
+    public float getElevation()
+    {
+        return this.Elevation;
+    }
+
+    public float getAzimuth()
+    {
+        return this.Azimuth;
+    }
+
+    public float getSNRatio()
+    {
+        return this.SNRatio;
+    }
+};
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener, View.OnClickListener
 {
@@ -57,6 +94,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static DecimalFormat df2 = new DecimalFormat("#.##");
 
     private boolean first_readings = true;
+
+    private ArrayList<SatParams> currentReading = new ArrayList<SatParams>();
+    private ArrayList<SatParams> previousReading = new ArrayList<SatParams>();
+
     private Integer[] mPrns = null, pPrns = null;
     private float[] mElevs = null, pElevs = null;
     private float[] mAzims = null, pAzims = null;
@@ -109,10 +150,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
                 else if (marker_value == 1)
                 {
-                    LatLng pos = new LatLng(13.0723449, 77.5758208);
+                    //LatLng pos = new LatLng(13.0723449, 77.5758208);
                     BitmapDrawable bitmapdraw = (BitmapDrawable) getResources().getDrawable(R.drawable.marker2);
                     Bitmap b = bitmapdraw.getBitmap();
-                    marker2 = mMap.addMarker(new MarkerOptions().position(pos).title("Marker in Current location").icon(BitmapDescriptorFactory.fromBitmap(b)));
+                    marker2 = mMap.addMarker(new MarkerOptions().position(currentlocation).title("Marker in Current location").icon(BitmapDescriptorFactory.fromBitmap(b)));
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentlocation, 16.0f));
                     pline = mMap.addPolyline(new PolylineOptions()
                             .add(marker1.getPosition())
@@ -132,6 +173,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     {
                         Toast.makeText(getApplicationContext(), "Your are to far from building come close", Toast.LENGTH_LONG ).show();
                     }
+                    ready = true;
                 }
             }
         }
@@ -371,22 +413,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     {
         if(ready)
         {
-            if (mPrns == null && pPrns == null)
-            {
-                final int MAX_LENGTH = 255;
-                mPrns = new Integer[MAX_LENGTH];
-                pPrns = new Integer[MAX_LENGTH];
-                //mSnrCn0s = new float[MAX_LENGTH];
-                mElevs = new float[MAX_LENGTH];
-                mElevs = new float[MAX_LENGTH];
-                mAzims = new float[MAX_LENGTH];
-                mAzims = new float[MAX_LENGTH];
-                //mConstellationType = new int[MAX_LENGTH];
-                //mHasEphemeris = new boolean[MAX_LENGTH];
-                //mHasAlmanac = new boolean[MAX_LENGTH];
-                //mUsedInFix = new boolean[MAX_LENGTH];
-            }
-
+            currentReading.clear();
+            previousReading.clear();
             int length = status.getSatelliteCount();
             mSvCount = 0;
             int svInViewCount = 0;
@@ -397,23 +425,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mSnrCn0UsedAvg = 0.0f;
             while (mSvCount < length)
             {
-                if ((status.getAzimuthDegrees(mSvCount) >= (bearing - minViewAngle)) && (status.getAzimuthDegrees(mSvCount) <= (bearing + minViewAngle)))
-                {
-                    //mSnrCn0s[mSvCount] = status.getCn0DbHz(mSvCount);  // Store C/N0 values (see #65)
-                    mElevs[mSvCount] = status.getElevationDegrees(mSvCount);
-                    mAzims[mSvCount] = status.getAzimuthDegrees(mSvCount);
-                    mPrns[mSvCount] = status.getSvid(mSvCount);
+                //if ((status.getAzimuthDegrees(mSvCount) >= (bearing - minViewAngle)) && (status.getAzimuthDegrees(mSvCount) <= (bearing + minViewAngle)))
+                //{
+                    SatParams element = new SatParams(status.getSvid(mSvCount), status.getElevationDegrees(mSvCount) ,status.getAzimuthDegrees(mSvCount), status.getCn0DbHz(mSvCount));
+                    currentReading.add(element);
                     if(first_readings == true)
                     {
-                        pPrns[mSvCount] = mPrns[mSvCount];
-                        pElevs[mSvCount] = mElevs[mSvCount];
-                        pAzims[mSvCount] = mAzims[mSvCount];
+                        previousReading.add(element);
                     }
-                    //mConstellationType[mSvCount] = status.getConstellationType(mSvCount);
-                    //mHasEphemeris[mSvCount] = status.hasEphemerisData(mSvCount);
-                    //mHasAlmanac[mSvCount] = status.hasAlmanacData(mSvCount);
-                    //mUsedInFix[mSvCount] = status.usedInFix(mSvCount);
-                    // If satellite is in view, add signal to calculate avg
                     if (status.getCn0DbHz(mSvCount) != 0.0f)
                     {
                         svInViewCount++;
@@ -423,8 +442,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         svUsedCount++;
                         cn0UsedSum = cn0UsedSum + status.getCn0DbHz(mSvCount);
                     }
-
-                }
+                //}
                 mSvCount++;
             }
             ParseSatelliteData();
@@ -442,9 +460,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void ParseSatelliteData()
     {
-        Log.d(TAG, "ParseSatelliteData: Start");
-        int lenght = mAzims.length;
-        if(!first_readings)
+        int length = currentReading.size();
+        for(int i = 0; i < length; i++)
+        {
+            Log.d(TAG, "ParseSatelliteData: Start " + currentReading.get(i).getPrns());
+        }
+        /*if(!first_readings)
         {
             int len;
             if(mAzims.length >= pAzims.length)
@@ -464,7 +485,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         else
         {
             first_readings = false;
-        }
+        }*/
     }
 
     private Integer[] Intersection()
