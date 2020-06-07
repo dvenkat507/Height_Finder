@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity implements CompoundButton.On
         }
         else {
             setContentView(R.layout.activity_main);
-            Permission = (Switch)findViewById(R.id.switch_permission);
+            Permission = findViewById(R.id.switch_permission);
             Permission.setOnCheckedChangeListener(this);
         }
     }

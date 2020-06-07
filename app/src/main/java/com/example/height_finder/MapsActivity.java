@@ -7,8 +7,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
 import android.location.GnssStatus;
 import android.location.Location;
 import android.location.LocationListener;
@@ -31,7 +29,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
-import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Objects;
@@ -110,9 +107,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         assert mapFragment != null;
         mapFragment.getMapAsync(this);
-        position_marker = (Button)findViewById(R.id.btn_position_marker);
+        position_marker = findViewById(R.id.btn_position_marker);
         position_marker.setOnClickListener(this);
-        clear_marker = (Button)findViewById(R.id.btn_clear_marker);
+        clear_marker = findViewById(R.id.btn_clear_marker);
         clear_marker.setOnClickListener(this);
     }
 
