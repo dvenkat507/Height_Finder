@@ -34,6 +34,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.ArrayList;
 
@@ -71,16 +72,16 @@ class SatParams
     {
         return this.SNRatio;
     }
-};
+}
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener, View.OnClickListener
 {
-    private static final String TAG ="MainActivity";
+    private static final String TAG ="MapsActivity";
     private Button position_marker,clear_marker;
 
     protected LocationManager locationManager;
-
     private GoogleMap mMap;
+
     private static int marker_value = 0;
     private static Marker marker1,marker2;
     private static boolean ready = false;
@@ -90,17 +91,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private double minViewAngle = 0.0f;
     private double distance = 0.0f, bearing = 0.0f;
 
-    private static DecimalFormat df2 = new DecimalFormat("#.##");
+//    private static DecimalFormat df2 = new DecimalFormat("#.##");
 
     private boolean first_readings = true;
 
-    private ArrayList<SatParams> currentReading = new ArrayList<SatParams>();
-    private ArrayList<SatParams> previousReading = new ArrayList<SatParams>();
-
-    private int mSvCount = 0;
-    private float mSnrCn0UsedAvg = 0.0f;
-    private float mSnrCn0InViewAvg = 0.0f;
-
+    private ArrayList<SatParams> currentReading = new ArrayList<>();
+    private ArrayList<SatParams> previousReading = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -112,6 +108,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
+        assert mapFragment != null;
         mapFragment.getMapAsync(this);
         position_marker = (Button)findViewById(R.id.btn_position_marker);
         position_marker.setOnClickListener(this);
@@ -130,9 +127,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 if (marker_value == 0)
                 {
                     Log.d(TAG, "run: " + currentlocation.latitude + " " + currentlocation.longitude);
-                    BitmapDrawable bitmapdraw = (BitmapDrawable) getResources().getDrawable(R.drawable.marker1);
-                    Bitmap b = bitmapdraw.getBitmap();
-                    marker1 = mMap.addMarker(new MarkerOptions().position(currentlocation).title("Marker in Current location").icon(BitmapDescriptorFactory.fromBitmap(b)));
+                    marker1 = mMap.addMarker(new MarkerOptions().position(currentlocation).title("Marker in Current location").icon(BitmapDescriptorFactory.fromResource(R.drawable.marker1_xml)));
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentlocation, 16.0f));
                     Resources res = getResources();
                     position_marker.setCompoundDrawablesWithIntrinsicBounds(ResourcesCompat.getDrawable(res, R.drawable.marker2_xml, null), null, null, null);
@@ -142,9 +137,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 else if (marker_value == 1)
                 {
                     //LatLng pos = new LatLng(13.0723449, 77.5758208);
-                    BitmapDrawable bitmapdraw = (BitmapDrawable) getResources().getDrawable(R.drawable.marker2);
-                    Bitmap b = bitmapdraw.getBitmap();
-                    marker2 = mMap.addMarker(new MarkerOptions().position(currentlocation).title("Marker in Current location").icon(BitmapDescriptorFactory.fromBitmap(b)));
+                    marker2 = mMap.addMarker(new MarkerOptions().position(currentlocation).title("Marker in Current location").icon(BitmapDescriptorFactory.fromResource(R.drawable.marker2_xml)));
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentlocation, 16.0f));
                     pline = mMap.addPolyline(new PolylineOptions()
                             .add(marker1.getPosition())
@@ -213,6 +206,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         double dLon = Math.toRadians(lon2 - lon1);
         double a = Math.pow(Math.sin(dLat/2),2) + Math.pow(Math.sin(dLon/2),2) * Math.cos(lat1) * Math.cos(lat2);
         double c = 2* Math.asin(Math.sqrt(a));
+        Log.i(TAG, "findDistance: Distance between markers = "+(Radius*c*1000.2f));
         return Radius*c*1000.2f;
     }
 
@@ -230,6 +224,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         {
             b = 360 + b;
         }
+        Log.i(TAG, "findBearing: Bearing of polyline = "+b);
         return (b);
     }
 
@@ -238,7 +233,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     {
         LatLng currentLocation = null;
 
-        Location location=null,location1=null,location2=null;
+        Location location = null , location1 = null , location2 = null;
         location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
         location1 = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         location2 = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
@@ -286,7 +281,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     {
         super.onResume();
         LocationManager service = (LocationManager) getSystemService(LOCATION_SERVICE);
-        boolean enabled = service.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        boolean enabled = Objects.requireNonNull(service).isProviderEnabled(LocationManager.GPS_PROVIDER);
         // Check if enabled and if not send user to the GPS settings
         if (!enabled)
         {
@@ -309,7 +304,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         catch (Exception e)
         {
-            Log.e("Exception: ", e.getMessage());
+            Log.e("Exception: ", Objects.requireNonNull(e.getMessage()));
         }
     }
 
@@ -379,60 +374,36 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             currentReading.clear();
             previousReading.clear();
             int length = status.getSatelliteCount();
-            mSvCount = 0;
-            int svInViewCount = 0;
-            int svUsedCount = 0;
-            float cn0InViewSum = 0.0f;
-            float cn0UsedSum = 0.0f;
-            mSnrCn0InViewAvg = 0.0f;
-            mSnrCn0UsedAvg = 0.0f;
+            int mSvCount = 0;
             while (mSvCount < length)
             {
                 if ((status.getAzimuthDegrees(mSvCount) >= (bearing - minViewAngle)) && (status.getAzimuthDegrees(mSvCount) <= (bearing + minViewAngle)))
                 {
                     SatParams element = new SatParams(status.getSvid(mSvCount), status.getElevationDegrees(mSvCount) ,status.getAzimuthDegrees(mSvCount), status.getCn0DbHz(mSvCount));
                     currentReading.add(element);
-                    if(first_readings == true)
+                    if(first_readings)
                     {
                         previousReading.add(element);
-                    }
-                    if (status.getCn0DbHz(mSvCount) != 0.0f)
-                    {
-                        svInViewCount++;
-                        cn0InViewSum = cn0InViewSum + status.getCn0DbHz(mSvCount);
-                    }
-                    if (status.usedInFix(mSvCount)) {
-                        svUsedCount++;
-                        cn0UsedSum = cn0UsedSum + status.getCn0DbHz(mSvCount);
                     }
                 }
                 mSvCount++;
             }
-            ParseSatelliteData();
-
-            if (svInViewCount > 0)
-            {
-                mSnrCn0InViewAvg = cn0InViewSum / svInViewCount;
-            }
-            if (svUsedCount > 0)
-            {
-                mSnrCn0UsedAvg = cn0UsedSum / svUsedCount;
-            }
+            parseSatelliteData();
         }
     }
 
-    private void ParseSatelliteData()
+    private void parseSatelliteData()
     {
+        for (SatParams curSat : currentReading)
+        {
+            Log.i("ParseSatelliteData ","Satellite pRN = "+curSat.getPrn()+"\t\t Azimuth angle = "+curSat.getAzimuth());
+        }
         if(!first_readings)
         {
-            ArrayList<Integer> intersection = new ArrayList<Integer>();
-            intersection = Intersection();
-            observeSatellite(intersection);
+            ArrayList<Integer> intersection = Intersection();
+            findHeight(intersection);
             previousReading.clear();
-            for(SatParams e : currentReading)
-            {
-                previousReading.add(e);
-            }
+            previousReading.addAll(currentReading);
         }
         else
         {
@@ -442,37 +413,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private ArrayList<Integer> Intersection()
     {
-        Integer[] mPrns = new Integer[currentReading.size()],pPrns = new Integer[previousReading.size()];
+        Integer[] cPrns = new Integer[currentReading.size()],pPrns = new Integer[previousReading.size()];
         for(int i=0; i<currentReading.size(); i++)
         {
-            mPrns[i] = currentReading.get(i).getPrns();
+            cPrns[i] = currentReading.get(i).getPrn();
         }
         for(int i=0; i<previousReading.size(); i++)
         {
-            pPrns[i] = previousReading.get(i).getPrns();
+            pPrns[i] = previousReading.get(i).getPrn();
         }
-        Set<Integer> s1 = new HashSet<Integer>(Arrays.asList(mPrns));
-        Set<Integer> s2 = new HashSet<Integer>(Arrays.asList(pPrns));
+        Set<Integer> s1 = new HashSet<>(Arrays.asList(cPrns));
+        Set<Integer> s2 = new HashSet<>(Arrays.asList(pPrns));
         s1.retainAll(s2);
 
-        ArrayList<Integer> result = new ArrayList<Integer>();
-
-        for (Integer e : s1)
-            result.add(e);
-
-        return result;
+        return new ArrayList<>(s1);
     }
 
-    private void observeSatellite(ArrayList<Integer> mPrns)
+    private void findHeight(ArrayList<Integer> mPrns)
     {
-        float Threshold = 0.0f;
-        float Elevation = 0.0f;
+        float Threshold = 20.0f;
+        float Elevation ;
         for(Integer ele : mPrns)
         {
-            SatParams cSat = null,pSat = null;
+            Elevation = 0.0f;
+            SatParams cSat = null ,pSat = null;
             for(SatParams temp: currentReading)
             {
-                if(temp.getPrns() == ele)
+                if(temp.getPrn().equals(ele))
                 {
                     cSat = temp;
                     break;
@@ -480,25 +447,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
             for(SatParams temp: previousReading)
             {
-                if(temp.getPrns() == ele)
+                if(temp.getPrn().equals(ele))
                 {
                     pSat = temp;
                     break;
                 }
             }
-            if(pSat.getSNRatio() > Threshold)
+            if(Objects.requireNonNull(pSat).getSNRatio() > Threshold)
             {
-                if(cSat.getSNRatio() <= Threshold)
+                if(Objects.requireNonNull(cSat).getSNRatio() <= Threshold)
                 {
                     Elevation = cSat.getElevation();
                 }
             }
             else if(pSat.getSNRatio() < Threshold)
             {
-                if(cSat.getSNRatio() >= Threshold)
+                if(Objects.requireNonNull(cSat).getSNRatio() >= Threshold)
                 {
                     Elevation = cSat.getElevation();
                 }
+            }
+            if(Elevation!=0.0f)
+            {
+                Toast.makeText(getApplicationContext(), "Elevation found for satellite PRN = "+cSat.getPrn(), Toast.LENGTH_LONG).show();
+                double height = Math.tan(Math.PI / 180 * Elevation) * distance;
+                Log.i(TAG, "findHeight: Result found -\n\tBuilding Height = "+height+"\n\tElevation (in degrees) = "+Elevation+"\n\tSatellite PRN = "+cSat.getPrn()+"\n\tDifference in SNR = "+(cSat.getSNRatio()-pSat.getSNRatio()));
             }
         }
     }
