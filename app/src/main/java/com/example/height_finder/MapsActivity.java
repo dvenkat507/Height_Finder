@@ -1,9 +1,9 @@
 package com.example.height_finder;
 
-import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.FragmentActivity;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -13,7 +13,6 @@ import android.location.GnssStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -77,7 +76,7 @@ class SatParams
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener, View.OnClickListener
 {
     private static final String TAG ="MainActivity";
-    private Button positon_marker,clear_marker;
+    private Button position_marker,clear_marker;
 
     protected LocationManager locationManager;
 
@@ -87,7 +86,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static boolean ready = false;
     private Polyline pline;
 
-    private static final double Raidus = 6372.8;
+    private static final double Radius = 6372.8;
     private double minViewAngle = 0.0f;
     private double distance = 0.0f, bearing = 0.0f;
 
@@ -98,14 +97,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private ArrayList<SatParams> currentReading = new ArrayList<SatParams>();
     private ArrayList<SatParams> previousReading = new ArrayList<SatParams>();
 
-    private Integer[] mPrns = null, pPrns = null;
-    private float[] mElevs = null, pElevs = null;
-    private float[] mAzims = null, pAzims = null;
-    private float[] mSnrCn0s = null;
-    private int[] mConstellationType = null;
-    private boolean[] mHasEphemeris = null;
-    private boolean[] mHasAlmanac = null;
-    private boolean[] mUsedInFix = null;
     private int mSvCount = 0;
     private float mSnrCn0UsedAvg = 0.0f;
     private float mSnrCn0InViewAvg = 0.0f;
@@ -122,8 +113,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-        positon_marker = (Button)findViewById(R.id.btn_position_marker);
-        positon_marker.setOnClickListener(this);
+        position_marker = (Button)findViewById(R.id.btn_position_marker);
+        position_marker.setOnClickListener(this);
         clear_marker = (Button)findViewById(R.id.btn_clear_marker);
         clear_marker.setOnClickListener(this);
     }
@@ -131,7 +122,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onClick(View view)
     {
-        if(view.equals(positon_marker))
+        if(view.equals(position_marker))
         {
             LatLng currentlocation = getLocation();
             if (currentlocation != null)
@@ -144,7 +135,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     marker1 = mMap.addMarker(new MarkerOptions().position(currentlocation).title("Marker in Current location").icon(BitmapDescriptorFactory.fromBitmap(b)));
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentlocation, 16.0f));
                     Resources res = getResources();
-                    positon_marker.setCompoundDrawablesWithIntrinsicBounds(ResourcesCompat.getDrawable(res, R.drawable.marker2_xml, null), null, null, null);
+                    position_marker.setCompoundDrawablesWithIntrinsicBounds(ResourcesCompat.getDrawable(res, R.drawable.marker2_xml, null), null, null, null);
                     marker_value++;
                     ready = false;
                 }
@@ -159,10 +150,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             .add(marker1.getPosition())
                             .add(marker2.getPosition()));
                     distance = findDistance(marker1, marker2);
-                    bearing = findbearing(marker2, marker1);
+                    bearing = findBearing(marker2, marker1);
                     Resources res = getResources();
-                    positon_marker.setCompoundDrawablesWithIntrinsicBounds(ResourcesCompat.getDrawable(res, R.drawable.cancelmarkerxml, null), null, null, null);
-                    positon_marker.setEnabled(false);
+                    position_marker.setCompoundDrawablesWithIntrinsicBounds(ResourcesCompat.getDrawable(res, R.drawable.cancelmarkerxml, null), null, null, null);
+                    position_marker.setEnabled(false);
                     marker_value++;
                     if((distance <= 15) && (distance > 0))
                     {
@@ -183,16 +174,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             {
                 marker2.remove();
                 marker_value--;
-                positon_marker.setEnabled(true);
+                position_marker.setEnabled(true);
                 Resources res = getResources();
-                positon_marker.setCompoundDrawablesWithIntrinsicBounds(ResourcesCompat.getDrawable(res, R.drawable.marker2_xml, null), null, null, null);
+                position_marker.setCompoundDrawablesWithIntrinsicBounds(ResourcesCompat.getDrawable(res, R.drawable.marker2_xml, null), null, null, null);
                 pline.remove();
             }
             else if(marker_value == 1)
             {
                 marker1.remove();
                 Resources res = getResources();
-                positon_marker.setCompoundDrawablesWithIntrinsicBounds(ResourcesCompat.getDrawable(res, R.drawable.marker1_xml, null), null, null, null);
+                position_marker.setCompoundDrawablesWithIntrinsicBounds(ResourcesCompat.getDrawable(res, R.drawable.marker1_xml, null), null, null, null);
                 marker_value--;
             }
             ready = false;
@@ -222,10 +213,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         double dLon = Math.toRadians(lon2 - lon1);
         double a = Math.pow(Math.sin(dLat/2),2) + Math.pow(Math.sin(dLon/2),2) * Math.cos(lat1) * Math.cos(lat2);
         double c = 2* Math.asin(Math.sqrt(a));
-        return Raidus*c*1000.2f;
+        return Radius*c*1000.2f;
     }
 
-    private double findbearing(Marker m1,Marker m2)
+    private double findBearing(Marker m1,Marker m2)
     {
         double lat1 = Math.toRadians(m1.getPosition().latitude);
         double lon1 = Math.toRadians(m1.getPosition().longitude);
@@ -242,23 +233,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return (b);
     }
 
+    @SuppressLint("MissingPermission")
     private LatLng getLocation()
     {
         LatLng currentLocation = null;
-        double release=Double.parseDouble(Build.VERSION.RELEASE.replaceAll("(\\d+[.]\\d+)(.*)","$1"));
-        if(release>=6.0)
-        {
-            if (ContextCompat.checkSelfPermission(this.getApplicationContext(), "android.permission.ACCESS_COARSE_LOCATION") == 0 && ContextCompat.checkSelfPermission(this.getApplicationContext(), "android.permission.ACCESS_FINE_LOCATION") == 0)
-            {
-
-            }
-            else
-            {
-                Intent i = new Intent(getApplicationContext(),MainActivity.class);
-                startActivity(i);
-            }
-        }
-
+        
         Location location=null,location1=null,location2=null;
         location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
         location1 = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
@@ -306,33 +285,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onResume()
     {
         super.onResume();
-        double release=Double.parseDouble(Build.VERSION.RELEASE.replaceAll("(\\d+[.]\\d+)(.*)","$1"));
-        if(release>=6.0)
-        {
-            if (ContextCompat.checkSelfPermission(this.getApplicationContext(), "android.permission.ACCESS_COARSE_LOCATION") == 0 && ContextCompat.checkSelfPermission(this.getApplicationContext(), "android.permission.ACCESS_FINE_LOCATION") == 0)
-            {
-
-            }
-            else
-            {
-                Intent i = new Intent(getApplicationContext(),MainActivity.class);
-                startActivity(i);
-            }
-        }
         LocationManager service = (LocationManager) getSystemService(LOCATION_SERVICE);
         boolean enabled = service.isProviderEnabled(LocationManager.GPS_PROVIDER);
         // Check if enabled and if not send user to the GPS settings
-        if (enabled)
-        {
-
-        }
-        else
+        if (!enabled)
         {
             Intent i = new Intent(this, FeaturesActivity.class);
             startActivity(i);
         }
     }
 
+    @SuppressLint("MissingPermission")
     private void updateLocationUI()
     {
         if (mMap == null)
@@ -425,8 +388,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mSnrCn0UsedAvg = 0.0f;
             while (mSvCount < length)
             {
-                //if ((status.getAzimuthDegrees(mSvCount) >= (bearing - minViewAngle)) && (status.getAzimuthDegrees(mSvCount) <= (bearing + minViewAngle)))
-                //{
+                if ((status.getAzimuthDegrees(mSvCount) >= (bearing - minViewAngle)) && (status.getAzimuthDegrees(mSvCount) <= (bearing + minViewAngle)))
+                {
                     SatParams element = new SatParams(status.getSvid(mSvCount), status.getElevationDegrees(mSvCount) ,status.getAzimuthDegrees(mSvCount), status.getCn0DbHz(mSvCount));
                     currentReading.add(element);
                     if(first_readings == true)
@@ -442,7 +405,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         svUsedCount++;
                         cn0UsedSum = cn0UsedSum + status.getCn0DbHz(mSvCount);
                     }
-                //}
+                }
                 mSvCount++;
             }
             ParseSatelliteData();
@@ -460,41 +423,83 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void ParseSatelliteData()
     {
-        int length = currentReading.size();
-        for(int i = 0; i < length; i++)
+        if(!first_readings)
         {
-            Log.d(TAG, "ParseSatelliteData: Start " + currentReading.get(i).getPrns());
-        }
-        /*if(!first_readings)
-        {
-            int len;
-            if(mAzims.length >= pAzims.length)
-                len = mAzims.length;
-            else
-                len = pAzims.length;
-            Integer[] interscetion = new Integer[len];
-            interscetion = Intersection();
-            pAzims = new float[mAzims.length];
-            pPrns = new Integer[mPrns.length];
-            pElevs = new float[mElevs.length];
-            for(int i = 0; i < mPrns.length; i++)
+            ArrayList<Integer> intersection = new ArrayList<Integer>();
+            intersection = Intersection();
+            observeSatellite(intersection);
+            previousReading.clear();
+            for(SatParams e : currentReading)
             {
-
+                previousReading.add(e);
             }
         }
         else
         {
             first_readings = false;
-        }*/
+        }
     }
 
-    private Integer[] Intersection()
+    private ArrayList<Integer> Intersection()
     {
+        Integer[] mPrns = new Integer[currentReading.size()],pPrns = new Integer[previousReading.size()];
+        for(int i=0; i<currentReading.size(); i++)
+        {
+            mPrns[i] = currentReading.get(i).getPrns();
+        }
+        for(int i=0; i<previousReading.size(); i++)
+        {
+            pPrns[i] = previousReading.get(i).getPrns();
+        }
         Set<Integer> s1 = new HashSet<Integer>(Arrays.asList(mPrns));
         Set<Integer> s2 = new HashSet<Integer>(Arrays.asList(pPrns));
         s1.retainAll(s2);
 
-        Integer[] result = s1.toArray(new Integer[s1.size()]);
+        ArrayList<Integer> result = new ArrayList<Integer>();
+
+        for (Integer e : s1)
+            result.add(e);
+
         return result;
+    }
+
+    private void observeSatellite(ArrayList<Integer> mPrns)
+    {
+        float Threshold = 0.0f;
+        float Elevation = 0.0f;
+        for(Integer ele : mPrns)
+        {
+            SatParams cSat = null,pSat = null;
+            for(SatParams temp: currentReading)
+            {
+                if(temp.getPrns() == ele)
+                {
+                    cSat = temp;
+                    break;
+                }
+            }
+            for(SatParams temp: previousReading)
+            {
+                if(temp.getPrns() == ele)
+                {
+                    pSat = temp;
+                    break;
+                }
+            }
+            if(pSat.getSNRatio() > Threshold)
+            {
+                if(cSat.getSNRatio() <= Threshold)
+                {
+                    Elevation = cSat.getElevation();
+                }
+            }
+            else if(pSat.getSNRatio() < Threshold)
+            {
+                if(cSat.getSNRatio() >= Threshold)
+                {
+                    Elevation = cSat.getElevation();
+                }
+            }
+        }
     }
 }
