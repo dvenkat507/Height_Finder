@@ -4,6 +4,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.FragmentActivity;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -40,22 +41,22 @@ import java.util.ArrayList;
 
 class SatParams
 {
-    private Integer Prns;
+    private Integer Prn;
     private float Elevation;
     private float Azimuth;
     private float SNRatio;
 
-    public SatParams(Integer Prns, float Elevation, float Azimuth, float SNRatio)
+    public SatParams(Integer Prn, float Elevation, float Azimuth, float SNRatio)
     {
-        this.Prns = Prns;
+        this.Prn = Prn;
         this.Elevation = Elevation;
         this.Azimuth = Azimuth;
         this.SNRatio = SNRatio;
     }
 
-    public Integer getPrns()
+    public Integer getPrn()
     {
-        return this.Prns;
+        return this.Prn;
     }
 
     public float getElevation()
@@ -333,6 +334,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    @SuppressLint("MissingPermission")
     private void updateLocationUI()
     {
         if (mMap == null)
@@ -463,7 +465,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         int length = currentReading.size();
         for(int i = 0; i < length; i++)
         {
-            Log.d(TAG, "ParseSatelliteData: Start " + currentReading.get(i).getPrns());
+            Log.d(TAG, "ParseSatelliteData: Start " + currentReading.get(i).getPrn());
         }
         /*if(!first_readings)
         {
