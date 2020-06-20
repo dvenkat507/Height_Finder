@@ -11,6 +11,8 @@ import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.Toast;
 
+import java.util.Objects;
+
 public class FeaturesActivity extends AppCompatActivity implements CompoundButton.OnCheckedChangeListener {
     private Switch Gps;
     private boolean enabled;
@@ -21,7 +23,7 @@ public class FeaturesActivity extends AppCompatActivity implements CompoundButto
     {
         super.onCreate(savedInstanceState);
         service = (LocationManager) getSystemService(LOCATION_SERVICE);
-        enabled = service.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        enabled = Objects.requireNonNull(service).isProviderEnabled(LocationManager.GPS_PROVIDER);
         // Check if enabled and if not send user to the GPS settings
         if (enabled)
         {
@@ -31,7 +33,7 @@ public class FeaturesActivity extends AppCompatActivity implements CompoundButto
         else
         {
             setContentView(R.layout.activity_features);
-            Gps = (Switch)findViewById(R.id.switch_feature_GPS);
+            Gps = findViewById(R.id.switch_feature_GPS);
             Gps.setOnCheckedChangeListener(this);
         }
     }

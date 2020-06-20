@@ -1,4 +1,6 @@
 <resources>
     <string name="app_name">Height_Finder</string>
     <string name="title_activity_maps">Map</string>
+    <string name="turn_on_the_gps">Turn on the GPS :</string>
+    <string name="location_permission">Location Permission :</string>
 </resources>

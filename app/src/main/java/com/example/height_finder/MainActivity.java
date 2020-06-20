@@ -12,12 +12,17 @@ import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity implements CompoundButton.OnCheckedChangeListener {
+public class MainActivity extends AppCompatActivity implements CompoundButton.OnCheckedChangeListener
+{
     Switch Permission;
+
+    private static final int Permission_code = 1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+
         if (ActivityCompat.checkSelfPermission(this.getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == 0 && ActivityCompat.checkSelfPermission(this.getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == 0)
         {
             //If Permission granted going to the Features Activity.
@@ -26,7 +31,7 @@ public class MainActivity extends AppCompatActivity implements CompoundButton.On
         }
         else {
             setContentView(R.layout.activity_main);
-            Permission = (Switch)findViewById(R.id.switch_permission);
+            Permission = findViewById(R.id.switch_permission);
             Permission.setOnCheckedChangeListener(this);
         }
     }
@@ -36,14 +41,14 @@ public class MainActivity extends AppCompatActivity implements CompoundButton.On
     {
         if(b)
         {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, 123);
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, Permission_code);
         }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
     {
-        if (requestCode == 123)
+        if (requestCode == Permission_code)
         {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED)
             {
