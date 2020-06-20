@@ -7,6 +7,8 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.location.GnssStatus;
 import android.location.Location;
 import android.location.LocationListener;
@@ -123,8 +125,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             {
                 if (marker_value == 0)
                 {
-                    Log.d(TAG, "run: " + currentlocation.latitude + " " + currentlocation.longitude);
-                    marker1 = mMap.addMarker(new MarkerOptions().position(currentlocation).title("Marker in Current location").icon(BitmapDescriptorFactory.fromResource(R.drawable.marker1_xml)));
+                    BitmapDrawable bitmapdraw = (BitmapDrawable) getResources().getDrawable(R.drawable.marker1);
+                    Bitmap b = bitmapdraw.getBitmap();
+                    marker1 = mMap.addMarker(new MarkerOptions().position(currentlocation).title("Marker 1").icon(BitmapDescriptorFactory.fromBitmap(b)));
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentlocation, 16.0f));
                     Resources res = getResources();
                     position_marker.setCompoundDrawablesWithIntrinsicBounds(ResourcesCompat.getDrawable(res, R.drawable.marker2_xml, null), null, null, null);
@@ -134,7 +137,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 else if (marker_value == 1)
                 {
                     //LatLng pos = new LatLng(13.0723449, 77.5758208);
-                    marker2 = mMap.addMarker(new MarkerOptions().position(currentlocation).title("Marker in Current location").icon(BitmapDescriptorFactory.fromResource(R.drawable.marker2_xml)));
+                    BitmapDrawable bitmapdraw = (BitmapDrawable) getResources().getDrawable(R.drawable.marker2);
+                    Bitmap b = bitmapdraw.getBitmap();
+                    marker2 = mMap.addMarker(new MarkerOptions().position(currentlocation).title("Marker in Current location").icon(BitmapDescriptorFactory.fromBitmap(b)));
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentlocation, 16.0f));
                     pline = mMap.addPolyline(new PolylineOptions()
                             .add(marker1.getPosition())
