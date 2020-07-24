@@ -37,6 +37,11 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.ArrayList;
 
+// Class to hold the reading from satellite.
+// Variable Prn is used to store Satellite Unique Identification Number.
+// Variable Elevation is used to store Elevation angle of the Satellite.
+// Variable Azimuth is used to store Azimuth angle of the Satellite.
+// Variable SNRatio is used to store the Signal to noise ratio of the Satellite.
 class SatParams
 {
     private Integer Prn;
@@ -75,7 +80,10 @@ class SatParams
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener, View.OnClickListener
 {
+    //Log identifier variable
     private static final String TAG ="MapsActivity";
+
+    // Buttons that marks position on map and clear it.
     private Button position_marker,clear_marker;
 
     protected LocationManager locationManager;
@@ -136,7 +144,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
                 else if (marker_value == 1)
                 {
-                    //LatLng pos = new LatLng(13.0723449, 77.5758208);
                     BitmapDrawable bitmapdraw = (BitmapDrawable) getResources().getDrawable(R.drawable.marker2);
                     Bitmap b = bitmapdraw.getBitmap();
                     marker2 = mMap.addMarker(new MarkerOptions().position(currentlocation).title("Marker in Current location").icon(BitmapDescriptorFactory.fromBitmap(b)));
@@ -374,7 +381,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if(ready)
         {
             currentReading.clear();
-            previousReading.clear();
             int length = status.getSatelliteCount();
             int mSvCount = 0;
             while (mSvCount < length)
@@ -398,7 +404,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     {
         for (SatParams curSat : currentReading)
         {
-            Log.i("ParseSatelliteData ","Satellite pRN = "+curSat.getPrn()+"\t\t Azimuth angle = "+curSat.getAzimuth());
+            Log.i("ParseSatelliteData ","Satellite pRN = "+curSat.getPrn()+"\t\t Azimuth angle = "+curSat.getAzimuth() +"\t Elevation = "+curSat.getElevation()+"\t SNR = "+ curSat.getSNRatio());
         }
         if(!first_readings)
         {
@@ -406,6 +412,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             findHeight(intersection);
             previousReading.clear();
             previousReading.addAll(currentReading);
+
         }
         else
         {
@@ -415,25 +422,30 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private ArrayList<Integer> Intersection()
     {
+        String c="",p="";
         Integer[] cPrns = new Integer[currentReading.size()],pPrns = new Integer[previousReading.size()];
         for(int i=0; i<currentReading.size(); i++)
         {
             cPrns[i] = currentReading.get(i).getPrn();
+            c = c + " " + cPrns[i];
         }
         for(int i=0; i<previousReading.size(); i++)
         {
             pPrns[i] = previousReading.get(i).getPrn();
+            p = p + " " + pPrns[i];
         }
+        Log.i(TAG, "Intersection: Current Reading = "+ c);
+        Log.i(TAG, "Intersection: Previous Reading = "+ p);
         Set<Integer> s1 = new HashSet<>(Arrays.asList(cPrns));
         Set<Integer> s2 = new HashSet<>(Arrays.asList(pPrns));
         s1.retainAll(s2);
-
+        Log.i(TAG, "Intersection: "+ s1);
         return new ArrayList<>(s1);
     }
 
     private void findHeight(ArrayList<Integer> mPrns)
     {
-        float Threshold = 20.0f;
+        float Threshold = 15.0f;
         float Elevation ;
         for(Integer ele : mPrns)
         {
