@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
+import android.icu.text.DecimalFormat;
 import android.location.GnssStatus;
 import android.location.Location;
 import android.location.LocationListener;
@@ -37,6 +38,11 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.ArrayList;
 
+// Class to hold the reading from satellite.
+// Variable Prn is used to store Satellite Unique Identification Number.
+// Variable Elevation is used to store Elevation angle of the Satellite.
+// Variable Azimuth is used to store Azimuth angle of the Satellite.
+// Variable SNRatio is used to store the Signal to noise ratio of the Satellite.
 class SatParams
 {
     private Integer Prn;
@@ -75,7 +81,10 @@ class SatParams
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener, View.OnClickListener
 {
+    //Log identifier variable
     private static final String TAG ="MapsActivity";
+
+    // Buttons that marks position on map and clear it.
     private Button position_marker,clear_marker;
 
     protected LocationManager locationManager;
@@ -90,7 +99,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private double minViewAngle = 0.0f;
     private double distance = 0.0f, bearing = 0.0f;
 
-//    private static DecimalFormat df2 = new DecimalFormat("#.##");
+    private static DecimalFormat df2 = new DecimalFormat("#.##");
 
     private boolean first_readings = true;
 
@@ -125,10 +134,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             {
                 if (marker_value == 0)
                 {
-                    BitmapDrawable bitmapdraw = (BitmapDrawable) getResources().getDrawable(R.drawable.marker1);
-                    Bitmap b = bitmapdraw.getBitmap();
+                    BitmapDrawable bitmapdraw = (BitmapDrawable) getResources().getDrawable(R.drawable.buildingmarker);
+                    Bitmap image = bitmapdraw.getBitmap();
+                    Bitmap b = Bitmap.createScaledBitmap(image, 90, 150, false);
                     marker1 = mMap.addMarker(new MarkerOptions().position(currentlocation).title("Marker 1").icon(BitmapDescriptorFactory.fromBitmap(b)));
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentlocation, 16.0f));
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentlocation, 19.5f));
                     Resources res = getResources();
                     position_marker.setCompoundDrawablesWithIntrinsicBounds(ResourcesCompat.getDrawable(res, R.drawable.marker2_xml, null), null, null, null);
                     marker_value++;
@@ -136,11 +146,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
                 else if (marker_value == 1)
                 {
-                    //LatLng pos = new LatLng(13.0723449, 77.5758208);
-                    BitmapDrawable bitmapdraw = (BitmapDrawable) getResources().getDrawable(R.drawable.marker2);
-                    Bitmap b = bitmapdraw.getBitmap();
+                    BitmapDrawable bitmapdraw = (BitmapDrawable) getResources().getDrawable(R.drawable.personmarker);
+                    Bitmap image = bitmapdraw.getBitmap();
+                    Bitmap b = Bitmap.createScaledBitmap(image, 90, 150, false);
                     marker2 = mMap.addMarker(new MarkerOptions().position(currentlocation).title("Marker in Current location").icon(BitmapDescriptorFactory.fromBitmap(b)));
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentlocation, 16.0f));
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentlocation, 19.5f));
                     pline = mMap.addPolyline(new PolylineOptions()
                             .add(marker1.getPosition())
                             .add(marker2.getPosition()));
@@ -152,12 +162,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     marker_value++;
                     if((distance <= 15) && (distance > 0))
                     {
-                        minViewAngle = Math.toDegrees(Math.atan(7.5 / distance));
+                        minViewAngle = Math.toDegrees(Math.atan(4 / distance));
                         ready = true;
+                    }
+                    else if(distance == 0)
+                    {
+                        Toast.makeText(getApplicationContext(), "Your are to near to the building.", Toast.LENGTH_LONG ).show();
                     }
                     else
                     {
-                        Toast.makeText(getApplicationContext(), "Your are to far from building come close", Toast.LENGTH_LONG ).show();
+                        Toast.makeText(getApplicationContext(), "Your are to far from building come close.", Toast.LENGTH_LONG ).show();
                     }
                     ready = true;
                 }
@@ -194,7 +208,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         final LatLng currentlocation = getLocation();
         if (currentlocation != null)
         {
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentlocation, 16.0f));
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentlocation, 19.5f));
         }
     }
 
@@ -374,7 +388,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if(ready)
         {
             currentReading.clear();
-            previousReading.clear();
             int length = status.getSatelliteCount();
             int mSvCount = 0;
             while (mSvCount < length)
@@ -398,7 +411,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     {
         for (SatParams curSat : currentReading)
         {
-            Log.i("ParseSatelliteData ","Satellite pRN = "+curSat.getPrn()+"\t\t Azimuth angle = "+curSat.getAzimuth());
+            Log.i("ParseSatelliteData ","Satellite pRN = "+curSat.getPrn()+"\t\t Azimuth angle = "+curSat.getAzimuth() +"\t Elevation = "+curSat.getElevation()+"\t SNR = "+ curSat.getSNRatio());
         }
         if(!first_readings)
         {
@@ -406,6 +419,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             findHeight(intersection);
             previousReading.clear();
             previousReading.addAll(currentReading);
+
         }
         else
         {
@@ -415,19 +429,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private ArrayList<Integer> Intersection()
     {
+        String c="",p="";
         Integer[] cPrns = new Integer[currentReading.size()],pPrns = new Integer[previousReading.size()];
         for(int i=0; i<currentReading.size(); i++)
         {
             cPrns[i] = currentReading.get(i).getPrn();
+            c = c + " " + cPrns[i];
         }
         for(int i=0; i<previousReading.size(); i++)
         {
             pPrns[i] = previousReading.get(i).getPrn();
+            p = p + " " + pPrns[i];
         }
+        Log.i(TAG, "Intersection: Current Reading = "+ c);
+        Log.i(TAG, "Intersection: Previous Reading = "+ p);
         Set<Integer> s1 = new HashSet<>(Arrays.asList(cPrns));
         Set<Integer> s2 = new HashSet<>(Arrays.asList(pPrns));
         s1.retainAll(s2);
-
+        Log.i(TAG, "Intersection: "+ s1);
         return new ArrayList<>(s1);
     }
 
@@ -474,6 +493,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Toast.makeText(getApplicationContext(), "Elevation found for satellite PRN = "+cSat.getPrn(), Toast.LENGTH_LONG).show();
                 double height = Math.tan(Math.PI / 180 * Elevation) * distance;
                 Log.i(TAG, "findHeight: Result found -\n\tBuilding Height = "+height+"\n\tElevation (in degrees) = "+Elevation+"\n\tSatellite PRN = "+cSat.getPrn()+"\n\tDifference in SNR = "+(cSat.getSNRatio()-pSat.getSNRatio()));
+                Intent intent = new Intent(this, ResultActivity.class);
+                intent.putExtra("Height", df2.format(height).toString());
+                startActivity(intent);
             }
         }
     }

@@ -13,29 +13,29 @@
             android:layout_height="match_parent"
             tools:context=".MapsActivity" />
         <Button
-            android:layout_width="45dp"
-            android:layout_height="45dp"
+            android:layout_width="55dp"
+            android:layout_height="55dp"
             android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true"
             android:layout_marginEnd="10dp"
             android:layout_marginBottom="10dp"
             android:background="@drawable/round_button"
-            android:paddingStart="13.5dp"
+            android:paddingStart="14dp"
             android:drawableStart="@drawable/marker1_xml"
             android:id="@+id/btn_position_marker"
             tools:ignore="RtlSymmetry" />
 
         <Button
-            android:layout_width="45dp"
-            android:layout_height="45dp"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentBottom="true"
-            android:layout_marginEnd="10dp"
-            android:layout_marginBottom="65dp"
-            android:background="@drawable/round_button"
-            android:paddingStart="13.5dp"
-            android:drawableStart="@drawable/deletemarkerxml"
             android:id="@+id/btn_clear_marker"
+            android:layout_width="55dp"
+            android:layout_height="55dp"
+            android:layout_above="@+id/btn_position_marker"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="10dp"
+            android:layout_marginBottom="10dp"
+            android:background="@drawable/round_button"
+            android:drawableStart="@drawable/deletemarkerxml"
+            android:paddingStart="14dp"
             tools:ignore="RtlSymmetry" />
 
 </RelativeLayout>
