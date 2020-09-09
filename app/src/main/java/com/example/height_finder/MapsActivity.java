@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
+import android.icu.text.DecimalFormat;
 import android.location.GnssStatus;
 import android.location.Location;
 import android.location.LocationListener;
@@ -98,7 +99,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private double minViewAngle = 0.0f;
     private double distance = 0.0f, bearing = 0.0f;
 
-//    private static DecimalFormat df2 = new DecimalFormat("#.##");
+    private static DecimalFormat df2 = new DecimalFormat("#.##");
 
     private boolean first_readings = true;
 
@@ -161,7 +162,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     marker_value++;
                     if((distance <= 15) && (distance > 0))
                     {
-                        minViewAngle = Math.toDegrees(Math.atan(7.5 / distance));
+                        minViewAngle = Math.toDegrees(Math.atan(4 / distance));
                         ready = true;
                     }
                     else if(distance == 0)
@@ -451,7 +452,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void findHeight(ArrayList<Integer> mPrns)
     {
-        float Threshold = 15.0f;
+        float Threshold = 20.0f;
         float Elevation ;
         for(Integer ele : mPrns)
         {
@@ -492,6 +493,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Toast.makeText(getApplicationContext(), "Elevation found for satellite PRN = "+cSat.getPrn(), Toast.LENGTH_LONG).show();
                 double height = Math.tan(Math.PI / 180 * Elevation) * distance;
                 Log.i(TAG, "findHeight: Result found -\n\tBuilding Height = "+height+"\n\tElevation (in degrees) = "+Elevation+"\n\tSatellite PRN = "+cSat.getPrn()+"\n\tDifference in SNR = "+(cSat.getSNRatio()-pSat.getSNRatio()));
+                Intent intent = new Intent(this, ResultActivity.class);
+                intent.putExtra("Height", df2.format(height).toString());
+                startActivity(intent);
             }
         }
     }

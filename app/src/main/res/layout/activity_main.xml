@@ -17,6 +17,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:checked="false"
+            android:fontFamily="@font/myfont"
             android:text="@string/location_permission"
             android:textColor="@color/Black"
             android:textSize="20sp" />
